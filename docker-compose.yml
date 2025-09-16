@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  deepeval:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEEPEVAL_DATABASE_URL=sqlite:///app/data/deepeval.db
+      - DEEPEVAL_LOG_LEVEL=INFO
+      - DEEPEVAL_DEBUG=false
+      - DEEPEVAL_MAX_WORKERS=10
+      - DEEPEVAL_TIMEOUT=300
+      - DEEPEVAL_PARALLEL_EXECUTION=true
+      - DEEPEVAL_SAVE_RESULTS=true
+      - DEEPEVAL_ENABLE_CACHE=true
+      - DEEPEVAL_ENABLE_SECURITY=true
+      - DEEPEVAL_MAX_CONCURRENT_EVALUATIONS=5
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+
+  # Optional: PostgreSQL for production database (uncomment if needed)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: deepeval
+  #     POSTGRES_USER: deepeval
+  #     POSTGRES_PASSWORD: deepeval_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+# volumes:
+#   redis_data:
+#   postgres_data:
